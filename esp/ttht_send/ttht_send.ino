@@ -1,9 +1,9 @@
 //⠀⠀⠀⠀⣠⣶⡾⠏⠉⠙⠳⢦⡀⠀⠀⠀⢠⠞⠉⠙⠲⡀⠀
 //⠀⠀⠀⣴⠿⠏⠀⠀⠀⠀ ⠀⢳⡀⠀ ⡏⠀⠀⠀⠀⠀ ⢷
-//⠀⠀⢠⣟⣋⡀⢀⣀⣀⡀⠀⣀⡀⣧⠀⢸⠀MY⠀   ⡇            Dat Nguyen
+//⠀⠀⢠⣟⣋⡀⢀⣀⣀⡀⠀⣀⡀⣧⠀⢸⠀MY⠀   ⡇            
 //⠀⠀⢸⣯⡭⠁⠸⣛⣟⠆⡴⣻⡲⣿⠀⣸⠀⠀  ⠀ ⡇
-//⠀⠀⣟⣿⡭⠀⠀⠀⠀⠀⢱⠀ ⣿⠀⢹⠀ LOCAL ⡇            If you want to learn more about project details, please contact me via: nguyenphudat.haui@gmail.com
-//⠀⠀⠙⢿⣯⠄⠀⠀⠀⢀⡀⠀⠀⡿⠀⠀⡇⠀⠀⠀⠀ ⡼             or facebook: https://www.facebook.com/npd6120
+//⠀⠀⣟⣿⡭⠀⠀⠀⠀⠀⢱⠀ ⣿⠀⢹⠀ ONLINE⡇            
+//⠀⠀⠙⢿⣯⠄⠀⠀⠀⢀⡀⠀⠀⡿⠀⠀⡇⠀⠀⠀⠀ ⡼             https://github.com/Futa612
 //⠀⠀⠀⠀⠹⣶⠆⠀⠀⠀⠀⠀⡴⠃⠀⠀⠘⠤⣄⣠⠞⠀
 //⠀⠀⠀⠀⠀⢸⣷⡦⢤⡤⢤⣞⣁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀             
 //⠀⠀⢀⣤⣴⣿⣏⠁⠀⠀⠸⣏⢯⣷⣖⣦⡀⠀⠀⠀⠀⠀⠀
@@ -13,12 +13,27 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
-//Cau hinh chan============================tuy vao phan cung ma tu cau hinh
-int pin1 = 2;
-int pin2 = 0;
-int pin3 = 9;
-int pin4 = 13;
-int sopin, trangthai;
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>         // https://github.com/tzapu/WiFiManager
+//Cau hinh chan===========================
+int pin1 = D1;
+int pin2 = D2;
+int pin3 = D3;
+int pin4 = D4;
+
+int button1 = D5;
+int button2 = D6;
+int button3 = D7;
+int button4 = D8;
+
+int sopin, trangthai,sopin_cu, trangthai_cu;
+
+String old_payload;
+
+// Set web server port number to 80
+WiFiServer server(80);
+
 //khai bao wifi, host, api key: kieu char*
 const char* ssid = "Hello kitty 1";
 const char* password = "19091977";
@@ -28,42 +43,60 @@ const char* api_key_gui_len = "dfgsfsjgh"; //random cai nay, muc dich la de phan
 
 
 void setup() {
+  
   pinMode(pin1, OUTPUT);
   pinMode(pin2, OUTPUT);
   pinMode(pin3, OUTPUT);
   pinMode(pin4, OUTPUT);
-  Serial.begin(19200);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print(".");
-    }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
+
+  pinMode(button1, INPUT);
+  pinMode(button2, INPUT);
+  pinMode(button3, INPUT);
+  pinMode(button4, INPUT);
+  
+  Serial.begin(115200);
+  WiFiManager wifiManager;
+  wifiManager.autoConnect("EasyRoom");
+  Serial.println("Connected.");
+  server.begin();
+  
+//  WiFi.begin(ssid, password);
+//  while (WiFi.status() != WL_CONNECTED) {
+//      delay(500);
+//      Serial.print(".");
+//    }
+//  Serial.println("");
+//  Serial.print("Connected to WiFi network with IP Address: ");
+//  Serial.println(WiFi.localIP());
 }
 //========het setup=============================
 int led1, oldled1;
 int led2, oldled2;
 int led3, oldled3;
 int led4, oldled4;
+int cmd;
 void ttht() { //đọc trạng thái hiện tại của các GPIO moi, so sanh voi GPIO cu, neu khác thì mới gửi request lên sever, không thì thôi
     oldled1 = led1;
     oldled2 = led2;
     oldled3 = led3;
     oldled4 = led4;
-//    led1 = random(0,2);
-//    led2 = random(0,2);
-//    led3 = random(0,2); 
-//    led4 = random(0,2);
+    
     led1 = digitalRead(pin1);
     led2 = digitalRead(pin2);
     led3 = digitalRead(pin3); 
     led4 = digitalRead(pin4);
+    
+//  Serial.print("Trang thai GPIO: ");
+//  Serial.print(led1);
+//  Serial.print(led2);
+//  Serial.print(led3);
+//  Serial.println(led4);
+//  Serial.print("Connecting to: ");
+//  Serial.println(host);
   }
 
 void dk(){
-   Serial.print(sopin); Serial.print(trangthai);
+//   Serial.print(sopin); Serial.print(trangthai);
    if(sopin == 1+48){
       digitalWrite(pin1, trangthai-48);
     }
@@ -77,92 +110,76 @@ void dk(){
       digitalWrite(pin4, trangthai-48);
     }
   }
-void loop() {
-  dk();
-  Serial.println("//////////////////////BEGIN//////////////////////");
-  ttht();
-  Serial.print("Trang thai GPIO: ");
-  Serial.print(led1);
-  Serial.print(led2);
-  Serial.print(led3);
-  Serial.println(led4);
-  Serial.print("Connecting to: ");
-  Serial.println(host);
-  
-  //1. Tao ket noi TCP su dung thu vien WiFiClient 
+void dk2(){
+  if (digitalRead(button4) == 1) { 
+    digitalWrite(pin4,1);   
+  }
+  else digitalWrite(pin4,0); 
+} 
+void gui_request() {
+  //  Serial.println("//////////////////////BEGIN//////////////////////");
+  if(led1 != oldled1 || led2 != oldled2 ||led3 != oldled3 ||led4 != oldled4){
+    //1. Tao ket noi TCP su dung thu vien WiFiClient 
   WiFiClient client;
   HTTPClient http;
   const int httpPort = 80; //thuong la 80 voi http
   //kiem tra ket noi
   if (!client.connect(host, httpPort)) {
-      Serial.println("Connection failed!");
+//      Serial.println("Connection failed!");
       return;
     }
-  Serial.println("Connection success!");
+//  Serial.println("Connection success!");
   //=============1. Gui request len PHP// Gui data len server=============
-  if(led1 != oldled1 || led2 != oldled2 ||led3 != oldled3 ||led4 != oldled4){
     client.print(String("GET http://ezroom.000webhostapp.com/connect.php?")
                     +("&led1=") + led1
                     +("&led2=") + led2
                     +("&led3=") + led3
                     +("&led4=") + led4
+                    +("&cmd=") + cmd
                     + " HTTP/1.1\r\n"
                     + "Host: " + host + "\r\n"
                     + "Connection: close\r\n\r\n");
     unsigned long current_time = millis();
     while (client.available() == 0) {
       if (millis() - current_time > 2000) {
-          Serial.print(">>> Client stop");
+//          Serial.print(">>> Client stop");
           client.stop();
           return;
         }
     }
- }
- 
-//  //=============1. Gui request len PHP// Gui data Temp- Humid len server=============
-//  client.print(String("GET http://192.168.1.105/ezroom/connect.php?")
-//                    +("&led1=") + led1
-//                    +("&led2=") + led2
-//                    +("&led3=") + led3
-//                    + " HTTP/1.1\r\n"
-//                    + "Host: " + host + "\r\n"
-//                    + "Connection: close\r\n\r\n");
-//  unsigned long current_time = millis();
-//  while (client.available() == 0) {
-//      if (millis() - current_time > 2000) {
-//          Serial.print(">>> Client stop");
-//          client.stop();
-//          return;
-//        }
-//    }
-////  Doc phan hoi (Dung de check) 
-//  while (client.available()) {
-//      String line = client.readStringUntil('\r');
-//      Serial.print(line);
-//    }
-//  Serial.println("*******Da gui du lieu len server*******");
-//  Serial.println();
-//  Serial.println(); 
+  }
+}
+void nhan_request(){
   //=============2. Doc lenh tu sever=============
-  //=============Doc lenh tu data.txt=============
+//=============Doc lenh tu data.txt=============
+  WiFiClient client;
+  HTTPClient http;
+  const int httpPort = 80; //thuong la 80 voi http
+  //kiem tra ket noi
+  if (!client.connect(host, httpPort)) {
+//      Serial.println("Connection failed!");
+      return;
+    }
   http.begin(client, servername);
   int httpcode = http.GET();
   if (httpcode = 200) {
-      Serial.print("Lenh tu sever gui ve: ");
+//      Serial.print("Lenh tu sever gui ve: ");
       String payload = http.getString();
-      Serial.println(payload);
+//      Serial.println(payload);
       char a[100] = "";
       //toCharArray() biến đổi từ một bộ đệm string về mảng char array
       for (int i =1; i<= payload.length()+1; i++) {
         payload.toCharArray(a,i);
       }
-      Serial.println("\n");
-      Serial.print("Kí tự thứ 0: ");
-      Serial.println(a[0]); 
-      Serial.print("Kí tự thứ 1: ");
-      Serial.println(a[1]);  
-      sopin = a[0];
-      trangthai = a[1]; 
+//      Serial.println("\n");
+//      Serial.print("Kí tự thứ 0: ");
+//      Serial.println(a[0]); 
+//      Serial.print("Kí tự thứ 1: ");
+//      Serial.println(a[1]);
+      if(payload =! old_payload) {
+        sopin = a[0];
+        trangthai = a[1]; 
+        }  
     }
     client.stop();
 //  unsigned long current_time2 = millis();
@@ -175,4 +192,41 @@ void loop() {
 //          return;
 //        }
 //    }
+//  }
+}
+void gui_ndda(){
+  //  //=============1. Gui request len PHP// Gui data Temp- Humid len server=============
+  WiFiClient client;
+  HTTPClient http;
+  client.print(String("GET http://192.168.1.105/ezroom/connect.php?")
+                    +("&led1=") + led1
+                    +("&led2=") + led2
+                    +("&led3=") + led3
+                    + " HTTP/1.1\r\n"
+                    + "Host: " + host + "\r\n"
+                    + "Connection: close\r\n\r\n");
+  unsigned long current_time = millis();
+  while (client.available() == 0) {
+      if (millis() - current_time > 2000) {
+          Serial.print(">>> Client stop");
+          client.stop();
+          return;
+        }
+    }
+//  Doc phan hoi (Dung de check) 
+  while (client.available()) {
+      String line = client.readStringUntil('\r');
+      Serial.print(line);
+    }
+  Serial.println("*******Da gui du lieu len server*******");
+  Serial.println();
+  Serial.println(); 
+  }
+  
+void loop() {
+    dk();
+    dk2();
+    ttht();
+    gui_request();
+    nhan_request();
 }
