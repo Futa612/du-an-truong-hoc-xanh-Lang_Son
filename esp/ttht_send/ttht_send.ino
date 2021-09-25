@@ -41,7 +41,6 @@ const char* host = "ezroom.000webhostapp.com"; //host thi bo http
 const char* servername = "http://ezroom.000webhostapp.com/data.txt"; // cho them http
 const char* api_key_gui_len = "dfgsfsjgh"; //random cai nay, muc dich la de phan biet gui va nhan, luc can luc khong
 
-
 void setup() {
   
   pinMode(pin1, OUTPUT);
@@ -59,15 +58,6 @@ void setup() {
   wifiManager.autoConnect("EasyRoom");
   Serial.println("Connected.");
   server.begin();
-  
-//  WiFi.begin(ssid, password);
-//  while (WiFi.status() != WL_CONNECTED) {
-//      delay(500);
-//      Serial.print(".");
-//    }
-//  Serial.println("");
-//  Serial.print("Connected to WiFi network with IP Address: ");
-//  Serial.println(WiFi.localIP());
 }
 //========het setup=============================
 int led1, oldled1;
@@ -75,7 +65,7 @@ int led2, oldled2;
 int led3, oldled3;
 int led4, oldled4;
 int cmd;
-void ttht() { //đọc trạng thái hiện tại của các GPIO moi, so sanh voi GPIO cu, neu khác thì mới gửi request lên sever, không thì thôi
+void ttht() { //đọc trạng thái hiện tại của các GPIO moi, so sanh voi GPIO cu, neu khác thì mới gửi request lên sever
     oldled1 = led1;
     oldled2 = led2;
     oldled3 = led3;
@@ -85,14 +75,6 @@ void ttht() { //đọc trạng thái hiện tại của các GPIO moi, so sanh v
     led2 = digitalRead(pin2);
     led3 = digitalRead(pin3); 
     led4 = digitalRead(pin4);
-    
-//  Serial.print("Trang thai GPIO: ");
-//  Serial.print(led1);
-//  Serial.print(led2);
-//  Serial.print(led3);
-//  Serial.println(led4);
-//  Serial.print("Connecting to: ");
-//  Serial.println(host);
   }
 
 void dk(){
@@ -171,28 +153,12 @@ void nhan_request(){
       for (int i =1; i<= payload.length()+1; i++) {
         payload.toCharArray(a,i);
       }
-//      Serial.println("\n");
-//      Serial.print("Kí tự thứ 0: ");
-//      Serial.println(a[0]); 
-//      Serial.print("Kí tự thứ 1: ");
-//      Serial.println(a[1]);
       if(payload =! old_payload) {
         sopin = a[0];
         trangthai = a[1]; 
         }  
     }
     client.stop();
-//  unsigned long current_time2 = millis();
-//  while (client.available() == 0) {
-//      if (millis() - current_time2 > 2000) {
-//          Serial.println(">>> Xong!");
-//          Serial.println();
-//          Serial.println();
-//          client.stop();
-//          return;
-//        }
-//    }
-//  }
 }
 void gui_ndda(){
   //  //=============1. Gui request len PHP// Gui data Temp- Humid len server=============
